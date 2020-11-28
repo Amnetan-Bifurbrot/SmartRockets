@@ -7,11 +7,12 @@
         mc:Ignorable="d"
         Title="Smart Rockets" Height="450" Width="450">
     <Grid>
-        
-        <Button x:Name="startBtn" Content="Start" HorizontalAlignment="Left" Margin="137,5,0,0" VerticalAlignment="Top" Width="50" Click="StartBtn_Click"/>
-        <Button x:Name="stopBtn" Content="Stop" HorizontalAlignment="Left" Margin="250,5,0,0" VerticalAlignment="Top" Width="50" Click="StopBtn_Click"/>
-        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="397" VerticalAlignment="Top" Width="443" Margin="0,23,0,0"/>
-            
-        
+
+        <Button x:Name="startBtn" Content="Start" HorizontalAlignment="Left" Margin="328,4,0,0" VerticalAlignment="Top" Width="50" Click="StartBtn_Click"/>
+        <Button x:Name="stopBtn" Content="Stop" HorizontalAlignment="Left" Margin="383,4,0,0" VerticalAlignment="Top" Width="50" Click="StopBtn_Click"/>
+        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="378" VerticalAlignment="Top" Width="443" Margin="0,42,0,0"></Canvas>
+        <Label x:Name="generationLabel" Content="Generation: " HorizontalAlignment="Left" Margin="10,2,0,0" VerticalAlignment="Top" Width="93"/>
+        <Label x:Name="maxFitLabel" Content="Max fitness:" Canvas.Left="10" Canvas.Top="1" Margin="103,2,134.2,392"/>
+
     </Grid>
 </Window>
