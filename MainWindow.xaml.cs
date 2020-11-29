@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace SmartRockets {
@@ -17,6 +17,7 @@ namespace SmartRockets {
         Point target = new Point(450 / 2 - 10, 90);
         int generation = 1;
         Random r = new Random();
+        Image target_img = new Image();
 
         public MainWindow() {
             InitializeComponent();
@@ -28,8 +29,10 @@ namespace SmartRockets {
             obstacleX = width / 2 - 100;
             obstacleY = height / 2 - 55;
 
-            //SetObstacle(obstacleX, obstacleY, 200, 10);
 
+            SetTarget();
+            //SetObstacle(target.X, target.Y, 10, 10);
+            
             rockets = new Rocket[pop_size];
         }
 
@@ -46,7 +49,7 @@ namespace SmartRockets {
 
                 Canvas.SetLeft(rockets[i], rockets[i].pos.X);
                 Canvas.SetTop(rockets[i], rockets[i].pos.Y);
-                
+
             }
         }
 
@@ -63,34 +66,57 @@ namespace SmartRockets {
             generationLabel.Content = "Generation: " + generation;
             if (counter < Rocket.lifetime) {
                 canvas.Children.Clear();
+                SetTarget(); // bo clearowaie usuwa cel
+
                 //SetObstacle(obstacleX,obstacleY,200,10);
                 for (int j = 0; j < pop_size; j++) {
                     rockets[j].pos.X += rockets[j].genes[counter].X;
                     rockets[j].pos.Y += rockets[j].genes[counter].Y;
-                    canvas.Children.Add(rockets[j]);
-                    Canvas.SetLeft(rockets[j], rockets[j].pos.X);
-                    Canvas.SetTop(rockets[j], rockets[j].pos.Y);
+                   
+
+                    Rectangle rect = new Rectangle();
+                    rect.Width = 20;
+                    rect.Height = 50;
+
+                    rect.Fill = new ImageBrush {
+                        ImageSource = rockets[j].Source
+                    };
+
+                    double angle = Math.Atan2(rockets[j].genes[counter].Y , rockets[j].genes[counter].X);
+
+                    RotateTransform rotateTransform1 = new RotateTransform((angle * 180 / Math.PI));
+                    
+                    rect.RenderTransform = rotateTransform1;
+
+                    canvas.Children.Add(rect);
+
+                    Canvas.SetLeft(rect, rockets[j].pos.X);
+                    Canvas.SetTop(rect, rockets[j].pos.Y);
+
+                    
+
                 }
                 counter++;
-			} else {
+            } else {
                 counter = 0;
                 double maxFit = 0;
-                for(int i = 0; i < pop_size; i++) {
+                for (int i = 0; i < pop_size; i++) { // szukanie maxFita sposrod wszystkich rakiet
                     rockets[i].Fitness(target);
                     if (maxFit < rockets[i].fitness)
                         maxFit = rockets[i].fitness;
-					Console.WriteLine("Rakieta " + i + ": " + rockets[i].fitness);
-				}
+                    Console.WriteLine("Rakieta " + i + ": " + rockets[i].fitness);
+                }
                 //dispatcherTimer.Stop();
                 Rocket[] matingPool = Rocket.CreateMatingPool(rockets);
-				Console.WriteLine(matingPool.Length);
-                for(int i = 0; i < pop_size; i++) {
+                Console.WriteLine(matingPool.Length);
+                for (int i = 0; i < pop_size; i++) {
                     //Thread.Sleep(20);
                     rockets[i] = Rocket.Procreate(matingPool, 0.001, r);
                     rockets[i].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90);
-				}
+                }
                 generation++;
-                maxFitLabel.Content = "Max fitness: " + maxFit;
+
+                maxFitLabel.Content = "Max fitness: " + string.Format("{0:N5}", maxFit); ;
             }
         }
 
@@ -105,6 +131,16 @@ namespace SmartRockets {
             Canvas.SetLeft(rect, x_coord);
             Canvas.SetTop(rect, y_coord);
             canvas.Children.Add(rect);
+        }
+
+        private void SetTarget() {
+            target_img.Source = new BitmapImage(new Uri("/Resources/target.png", UriKind.Relative));
+            //Width = 5;
+            //Height = 5;
+            Canvas.SetLeft(target_img, target.X - 2.5);
+            Canvas.SetTop(target_img, target.Y - 2.5);
+            canvas.Children.Add(target_img);
+
         }
     }
 }

@@ -10,6 +10,7 @@ namespace SmartRockets {
 		public double fitness = -1;
 		public Point pos;
 		public Vector[] genes;
+	
 
 		public Rocket() {
 			Source = new BitmapImage(new Uri("/rocket.png", UriKind.Relative));
@@ -27,7 +28,7 @@ namespace SmartRockets {
 			genes = new Vector[lifetime];
 			for (int i = 0; i < lifetime; i++) {
 				angle = r.NextDouble() * 2 * Math.PI;   //losujemy geny do chromosomu (kąty od 0 do 2pi)
-				genes[i] = new Vector(5*Math.Sin(angle), 5*Math.Cos(angle));
+				genes[i] = new Vector(5 * Math.Sin(angle), 5 * Math.Cos(angle));
 			}
 		}
 
@@ -55,12 +56,22 @@ namespace SmartRockets {
 
 		public static Rocket Procreate(Rocket[] matingpool, double mutationChance, Random r) {
 			Rocket child = new Rocket(), parentA, parentB;
-			int matingpoolSize = matingpool.Length;
-			parentA = matingpool[r.Next(matingpoolSize)];
-			do {
-				parentB = matingpool[r.Next(matingpoolSize)];
-			} while (parentA.fitness == parentB.fitness);	//losuje rodzica dopóki nie znajdzie dwóch różnych
+			int matingpoolSize = matingpool.Length;		
+			
+			while (true) {
+				int idA = r.Next(matingpoolSize);
+				parentA = matingpool[idA];
 
+				int idB = r.Next(matingpoolSize);
+				parentB = matingpool[r.Next(matingpoolSize)];
+
+				if (idA != idB)
+					break;
+				else
+					continue;
+
+			}
+			
 			//krzyżowanie
 			child.Cross(parentA, parentB, r);
 			//mutacja
@@ -82,13 +93,14 @@ namespace SmartRockets {
 			//tutaj jest proces sortowania tablicy z rakietami
 			for (int i = 0; i < population.Length; i++)
 				fitnesses[i] = population[i].fitness;
-			Array.Sort(fitnesses,population);	//sortowanie rosnąco
-			Array.Reverse(population);	//odwrócenie tablicy, żeby była posortowana malejąco
+
+			Array.Sort(fitnesses, population);  //sortowanie rosnąco
+			Array.Reverse(population);  //odwrócenie tablicy, żeby była posortowana malejąco
 
 			//za Danielem Shiffmanem, ale bierzemy tylko połowę najlepszych
-			for (int i = 0; i < population.Length/2; i++) {
-				double n = Math.Floor(population[i].fitness * 1000);
-				for (int j = 0; j < n; j++)		//dodajemy rakietę o danym fitnessie odpowiednią ilość razy
+			for (int i = 0; i < population.Length / 2; i++) {
+				double n = Math.Floor(population[i].fitness * 1000); // liczba rakiet w polu rozrodczym reprezentujace population[i]
+				for (int j = 0; j < n; j++)     //dodajemy rakietę o danym fitnessie odpowiednią ilość razy
 					matingpool.Add(population[i]);
 			}
 			return matingpool.ToArray();

@@ -12,7 +12,7 @@
         <Button x:Name="stopBtn" Content="Stop" HorizontalAlignment="Left" Margin="383,4,0,0" VerticalAlignment="Top" Width="50" Click="StopBtn_Click"/>
         <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="378" VerticalAlignment="Top" Width="443" Margin="0,42,0,0"></Canvas>
         <Label x:Name="generationLabel" Content="Generation: " HorizontalAlignment="Left" Margin="10,2,0,0" VerticalAlignment="Top" Width="93"/>
-        <Label x:Name="maxFitLabel" Content="Max fitness:" Canvas.Left="10" Canvas.Top="1" Margin="103,2,134.2,392"/>
+        <Label x:Name="maxFitLabel" Content="Max fitness:" HorizontalAlignment="Left" Margin="100,2,0,0" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

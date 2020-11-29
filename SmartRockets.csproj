@@ -103,6 +103,9 @@
     <Resource Include="rocket.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\target.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="rocket.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
