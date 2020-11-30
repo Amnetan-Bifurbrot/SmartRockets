@@ -84,16 +84,12 @@ namespace SmartRockets {
 
                     double angle = Math.Atan2(rockets[j].genes[counter].Y , rockets[j].genes[counter].X);
 
-                    RotateTransform rotateTransform1 = new RotateTransform((angle * 180 / Math.PI));
-                    
-                    rect.RenderTransform = rotateTransform1;
+                    rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI));
 
                     canvas.Children.Add(rect);
 
                     Canvas.SetLeft(rect, rockets[j].pos.X);
-                    Canvas.SetTop(rect, rockets[j].pos.Y);
-
-                    
+                    Canvas.SetTop(rect, rockets[j].pos.Y);              
 
                 }
                 counter++;
