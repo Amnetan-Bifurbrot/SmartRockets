@@ -25,6 +25,8 @@ namespace SmartRockets {
 			Source = new BitmapImage(new Uri("/rocket.png", UriKind.Relative));
 			Width = 20;
 			Height = 90;
+
+
 			genes = new Vector[lifetime];
 			for (int i = 0; i < lifetime; i++) {
 				angle = r.NextDouble() * 2 * Math.PI;   //losujemy geny do chromosomu (kąty od 0 do 2pi)
