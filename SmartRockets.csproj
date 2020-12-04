@@ -103,10 +103,10 @@
     <Resource Include="rocket.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\target.png">
+    <Content Include="Resources\rocket.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="rocket.png">
+    <Content Include="Resources\target.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
