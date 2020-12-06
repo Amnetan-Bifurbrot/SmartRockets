@@ -77,8 +77,8 @@ namespace SmartRockets {
 					rockets[j].pos.Y += rockets[j].genes[counter].Y;
 
 					Rectangle rect = new Rectangle();
-					rect.Width = 10;
-					rect.Height = 25;
+					rect.Width = 8;
+					rect.Height = 20;
 
 					rect.Fill = new ImageBrush {
 						ImageSource = rockets[j].Source

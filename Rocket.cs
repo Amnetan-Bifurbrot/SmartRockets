@@ -104,8 +104,12 @@ namespace SmartRockets {
 			Array.Reverse(population);  //odwrócenie tablicy, żeby była posortowana malejąco
 
 			//za Danielem Shiffmanem, ale bierzemy tylko połowę najlepszych
+			double sumOfFs = 0;
+			for(int i = 0; i < population.Length / 2; i++) 
+				sumOfFs += population[i].fitness;
+			
 			for (int i = 0; i < population.Length / 2; i++) {
-				double n = Math.Floor(population[i].fitness * 1000); // liczba rakiet w polu rozrodczym reprezentujace population[i]
+				double n = Math.Floor(population[i].fitness * 100 / sumOfFs); // liczba rakiet w polu rozrodczym reprezentujace population[i]
 				for (int j = 0; j < n; j++)     //dodajemy rakietę o danym fitnessie odpowiednią ilość razy
 					matingpool.Add(population[i]);
 			}
