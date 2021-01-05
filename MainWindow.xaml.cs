@@ -12,12 +12,15 @@ namespace SmartRockets {
 	public partial class MainWindow : Window {
 		System.Windows.Threading.DispatcherTimer dispatcherTimer;
 		double width = 450, height = 430, obstacleX, obstacleY;
-		int pop_size = 10; // ilosc rakiet
+		int pop_size = 25; // ilosc rakiet
 		Rocket[] rockets; // docelowo bedzie duze N, wiec tablica bedzie szybsza niz lista  
 		Point target = new Point(450 / 2 - 10, 90);
 		int generation = 1;
 		Random r = new Random();
 		Image target_img = new Image();
+		double precisionToStop = 10, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
+		bool showLastRocket = false;
+		int bestRocketIndex = 0;
 
 		public MainWindow() {
 			InitializeComponent();
@@ -31,7 +34,7 @@ namespace SmartRockets {
 
 
 			SetTarget();
-			//SetObstacle(target.X, target.Y, 10, 10);
+			SetObstacle(x_coord, y_coord, obstacleWidth, obstacleHeight);
 
 			rockets = new Rocket[pop_size];
 		}
@@ -42,81 +45,157 @@ namespace SmartRockets {
 
 		private void StopBtn_Click(object sender, RoutedEventArgs e) {
 			dispatcherTimer.Stop();
-			//canvas.Children.Clear();
-			//SetObstacle(obstacleX, obstacleY, 200, 10);
 		}
 
-		int counter = 0;
+		int counter = 0; // liczy ilosc tikuf
 
 		private void dispatcherTimer_Tick(object sender, EventArgs e) {
 			// rysowanie rakiet
 			generationLabel.Content = "Generation: " + generation;
 			if (counter == 0 && generation == 1) {
 				// 1. generacja rakiet
-				for (int i = 0; i < pop_size; i++) {
-					//Thread.Sleep(20);
-					rockets[i] = new Rocket(r);  //gotowa rakieta z genami
-					Console.WriteLine(rockets[i].Source);
-					rockets[i].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90);
+				if (!showLastRocket) {
+					for (int i = 0; i < pop_size; i++) {
+						rockets[i] = new Rocket(r);  //gotowa rakieta z genami
+						rockets[i].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90);
 
-					canvas.Children.Add(rockets[i]);
+						canvas.Children.Add(rockets[i]);
 
-					Canvas.SetLeft(rockets[i], rockets[i].pos.X);
-					Canvas.SetTop(rockets[i], rockets[i].pos.Y);
+						Canvas.SetLeft(rockets[i], rockets[i].pos.X);
+						Canvas.SetTop(rockets[i], rockets[i].pos.Y);
 
+					}
+				} else { // jezeli rysujemy najlepsza rakiete
+
+					canvas.Children.Clear();
+					SetTarget(); // bo clearowaie usuwa cel
+					SetObstacle(x_coord, y_coord, obstacleWidth, obstacleHeight);
+
+					rockets[bestRocketIndex].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90);
+					canvas.Children.Add(rockets[bestRocketIndex]);
+					Canvas.SetLeft(rockets[bestRocketIndex], rockets[bestRocketIndex].pos.X);
+					Canvas.SetTop(rockets[bestRocketIndex], rockets[bestRocketIndex].pos.Y);
 				}
 			}
 
 			if (counter < Rocket.lifetime) {
 				canvas.Children.Clear();
 				SetTarget(); // bo clearowaie usuwa cel
+				SetObstacle(x_coord, y_coord, obstacleWidth, obstacleHeight);
 
-				//SetObstacle(obstacleX,obstacleY,200,10);
-				for (int j = 0; j < pop_size; j++) {
-					rockets[j].pos.X += rockets[j].genes[counter].X;
-					rockets[j].pos.Y += rockets[j].genes[counter].Y;
+				if (!showLastRocket) {
+					for (int j = 0; j < pop_size; j++) {
+						// jezeli walnie w przeszkode to nie dodajemy do pozycji
+						// sprawdzenie czy walniemy w pzrszkode
+						if (rockets[j].pos.X > x_coord && rockets[j].pos.X < (x_coord + obstacleWidth) && rockets[j].pos.Y > y_coord && rockets[j].pos.Y < (y_coord + obstacleHeight)) {
+							//MessageBox.Show("Crashed!");
+							rockets[j].crashed = true;
+						}
+						if (rockets[j].crashed != true) {
+							rockets[j].pos.X += rockets[j].genes[counter].X; // dodajemy do aktualnej pozycji to co jest w tablicy z genami w danym kroku czasowym
+							rockets[j].pos.Y += rockets[j].genes[counter].Y;
+						} else {
+							rockets[j].Fitness(target, 5, 5); // troche nie ciaua szyyypko jakbym chciaua
+						}
+
+
+						Rectangle rect = new Rectangle();
+						rect.Width = 8;
+						rect.Height = 20;
+
+						rect.Fill = new ImageBrush {
+							ImageSource = rockets[j].Source
+						};
+
+						// obrot rakiety o odpowiedni kat
+						double angle = Math.Atan2(rockets[j].genes[counter].Y, rockets[j].genes[counter].X);
+						rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI));
+
+						canvas.Children.Add(rect);
+
+						Canvas.SetLeft(rect, rockets[j].pos.X);
+						Canvas.SetTop(rect, rockets[j].pos.Y);
+
+					}
+
+				} else {
+					// jezeli rysujemy najlepsza rakiete
+					rockets[bestRocketIndex].pos.X += rockets[bestRocketIndex].genes[counter].X; // dodajemy do aktualnej pozycji to co jest w tablicy z genami w danym kroku czasowym
+					rockets[bestRocketIndex].pos.Y += rockets[bestRocketIndex].genes[counter].Y;
 
 					Rectangle rect = new Rectangle();
 					rect.Width = 8;
 					rect.Height = 20;
 
 					rect.Fill = new ImageBrush {
-						ImageSource = rockets[j].Source
+						ImageSource = rockets[bestRocketIndex].Source
 					};
 
-
-					double angle = Math.Atan2(rockets[j].genes[counter].Y, rockets[j].genes[counter].X);
-
+					// obrot rakiety o odpowiedni kat
+					double angle = Math.Atan2(rockets[bestRocketIndex].genes[counter].Y, rockets[bestRocketIndex].genes[counter].X);
 					rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI));
 
 					canvas.Children.Add(rect);
 
-					Canvas.SetLeft(rect, rockets[j].pos.X);
-					Canvas.SetTop(rect, rockets[j].pos.Y);
-
+					Canvas.SetLeft(rect, rockets[bestRocketIndex].pos.X);
+					Canvas.SetTop(rect, rockets[bestRocketIndex].pos.Y);
 				}
 				counter++;
+
+			} else if (counter >= Rocket.lifetime && showLastRocket == true) {
+				// dla przypadku rakiety najlepszej jak już zostala jej cala droga narysowana i chcemy zakonczyc timer bez kontynuowania generacji
+				showLastRocket = false;
+				dispatcherTimer.Stop();
 			} else {
-				counter = 0;
+				// wyliczamy najkrotszy distance do celu sposrod calej generacji
+				double dist = 400;
+
+				for (int i = 0; i < pop_size; i++) {
+					double dx = rockets[i].pos.X - target.X, dy = rockets[i].pos.Y - target.Y;
+					double new_dist = Math.Sqrt(dx * dx + dy * dy);
+					if (dist > new_dist) {
+						dist = new_dist;
+						bestRocketIndex = i;
+					}
+				}
+				distanceLabel.Content = "Distance: " + string.Format("{0:N5}", dist);
+
+				// stopujemy symulacje jezeli rakieta z pewna precyzja dobiegla do celu
+				if (dist < precisionToStop) {
+
+					const string message = "Target has beeen reached. \n Do you want to see the best rocket?";
+					const string caption = "Success";
+					var result = MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+					if (result == MessageBoxResult.No) {
+						dispatcherTimer.Stop();
+					} else {
+						showLastRocket = true; // rysujemy poejdynczy ruch rakiety tej najlepszej
+					}
+				}
+
+				counter = 0; // konczymy zabawe
 				double maxFit = 0;
 				for (int i = 0; i < pop_size; i++) { // szukanie maxFita sposrod wszystkich rakiet
-					rockets[i].Fitness(target);
+					rockets[i].Fitness(target, 5, 5);
 					if (maxFit < rockets[i].fitness)
 						maxFit = rockets[i].fitness;
 					Console.WriteLine("Rakieta " + i + ": " + rockets[i].fitness);
 				}
-				//dispatcherTimer.Stop();
+
+				// basen do rosmnaszanja cieciuf
 				Rocket[] matingPool = Rocket.CreateMatingPool(rockets);
 				Console.WriteLine(matingPool.Length);
 				for (int i = 0; i < pop_size; i++) {
-					//Thread.Sleep(20);
+					// kazdom rakiete zastempujemy nofom ragjedom
 					rockets[i] = Rocket.Procreate(matingPool, 0.001, r);
-					rockets[i].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90);
+					rockets[i].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90); // pozycja poczatkowa
 				}
 				generation++;
 
-				maxFitLabel.Content = "Max fitness: " + string.Format("{0:N5}", maxFit); ;
+				maxFitLabel.Content = "Max fitness: " + string.Format("{0:N5}", maxFit);
 			}
+
 		}
 
 		private void SetObstacle(double x_coord, double y_coord, double width, double height) { // tworzy przeszkode do omijania

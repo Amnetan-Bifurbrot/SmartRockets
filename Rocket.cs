@@ -12,6 +12,7 @@ namespace SmartRockets {
 		public Point pos;
 		public Vector[] genes;
 		string workingDirectory = Environment.CurrentDirectory;
+		public bool crashed = false;
 
 
 		public Rocket() {
@@ -26,13 +27,16 @@ namespace SmartRockets {
 		public Rocket(Random r) {
 			double angle;
 			//obrazek rakiety
-			Source = new BitmapImage(new Uri("/rocket.png", UriKind.Relative));
+			Source = new BitmapImage(new Uri(Directory.GetParent(workingDirectory).Parent.FullName + @"\Resources\rocket.png", UriKind.Relative));
+
+			//Source = new BitmapImage(new Uri("/rocket.png", UriKind.Relative));
 			Width = 20;
 			Height = 90;
 			genes = new Vector[lifetime];
 			for (int i = 0; i < lifetime; i++) {
-				angle = r.NextDouble() * 2 * Math.PI;   //losujemy geny do chromosomu (kąty od 0 do 2pi)
-				genes[i] = new Vector(5 * Math.Sin(angle), 5 * Math.Cos(angle));
+				int step = 4;
+				angle = r.Next(0 / step, 360 / step ) *step * Math.PI / 180; //losujemy geny do chromosomu (kąty od 0 do 2pi) - z dokladnoscia do stepu
+				genes[i] = new Vector(5 * Math.Sin(angle), 5 * Math.Cos(angle)); // odlegosc w pixelach jaka pokona w jedym kroku czasowym rakieta dla bezwzglednych
 			}
 		}
 
@@ -52,7 +56,8 @@ namespace SmartRockets {
 			for (int i = 0; i < lifetime; i++) {
 				if (r.NextDouble() < chance) {
 					Console.WriteLine("Mutation!");
-					angle = r.NextDouble() * 2 * Math.PI;
+					int step = 4;
+					angle = r.Next(0 / step, 360 / step) * step * Math.PI / 180;
 					genes[i] = new Vector(5 * Math.Sin(angle), 5 * Math.Cos(angle));
 				}
 			}
@@ -84,11 +89,16 @@ namespace SmartRockets {
 			return child;
 		}
 
-		public void Fitness(Point target) {
+		public void Fitness(Point target, double targetWidth, double targetHeight) {
 			//zwracamy 1/odległość do targetu
 
-			double dx = pos.X - target.X, dy = pos.Y - target.Y;
+			double dx = pos.X - (target.X + targetWidth / 2), dy = pos.Y - (target.Y + targetHeight / 2);
+			
 			fitness = 1.0 / Math.Sqrt(dx * dx + dy * dy);
+
+			// jak zderzony z przeszkoda to zmniejszamy fitness
+			if (crashed)
+				fitness = fitness / 10;
 		}
 
 		public static Rocket[] CreateMatingPool(Rocket[] population) {
@@ -103,15 +113,17 @@ namespace SmartRockets {
 			Array.Reverse(population);  //odwrócenie tablicy, żeby była posortowana malejąco
 
 			//za Danielem Shiffmanem, ale bierzemy tylko połowę najlepszych
-			double sumOfFs = 0;
+			double sumOfFs = 0; // suma wszystkich fitnessuf braych pod uwage - polowy 
 			for(int i = 0; i < population.Length / 2; i++) 
 				sumOfFs += population[i].fitness;
-			
+			// od polowy najlepszych
 			for (int i = 0; i < population.Length / 2; i++) {
-				double n = Math.Floor(population[i].fitness * 100 / sumOfFs); // liczba rakiet w polu rozrodczym reprezentujace population[i]
+				// procent wylosowania danego osobnika
+				double n = Math.Floor(population[i].fitness * 100 / sumOfFs); //procentowa zawartosc rakiet w polu rozrodczym reprezentujace population[i]
 				for (int j = 0; j < n; j++)     //dodajemy rakietę o danym fitnessie odpowiednią ilość razy
 					matingpool.Add(population[i]);
 			}
+			// im wiekszy procent, tym wiecej osobnikuf
 			return matingpool.ToArray();
 		}
 	}

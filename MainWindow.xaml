@@ -13,6 +13,7 @@
         <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="378" VerticalAlignment="Top" Width="443" Margin="0,42,0,0"></Canvas>
         <Label x:Name="generationLabel" Content="Generation: " HorizontalAlignment="Left" Margin="10,2,0,0" VerticalAlignment="Top" Width="93"/>
         <Label x:Name="maxFitLabel" Content="Max fitness:" HorizontalAlignment="Left" Margin="100,2,0,0" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="distanceLabel" Content="distance" HorizontalAlignment="Left" Margin="220,1,0,0" VerticalAlignment="Top" Width="108"/>
 
     </Grid>
 </Window>
