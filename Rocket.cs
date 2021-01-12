@@ -7,13 +7,13 @@ using System.Windows.Media.Imaging;
 
 namespace SmartRockets {
 	class Rocket : Image {
-		public static int lifetime = 200;
+		public static int lifetime = 100;
 		public double fitness = -1;
 		public Point pos;
+		public Vector vel;
 		public Vector[] genes;
 		string workingDirectory = Environment.CurrentDirectory;
 		public bool crashed = false;
-
 
 		public Rocket() {
 			string workingDirectory = Environment.CurrentDirectory;
@@ -35,8 +35,8 @@ namespace SmartRockets {
 			genes = new Vector[lifetime];
 			for (int i = 0; i < lifetime; i++) {
 				int step = 4;
-				angle = r.Next(0 / step, 360 / step ) *step * Math.PI / 180; //losujemy geny do chromosomu (kąty od 0 do 2pi) - z dokladnoscia do stepu
-				genes[i] = new Vector(5 * Math.Sin(angle), 5 * Math.Cos(angle)); // odlegosc w pixelach jaka pokona w jedym kroku czasowym rakieta dla bezwzglednych
+				angle = r.Next(0 / step, 360 / step) * step * Math.PI / 5; //losujemy geny do chromosomu (kąty od 0 do 2pi) - z dokladnoscia do stepu
+				genes[i] = new Vector(1 * Math.Sin(angle), 1 * Math.Cos(angle)); // odlegosc w pixelach jaka pokona w jedym kroku czasowym rakieta dla bezwzglednych
 			}
 		}
 

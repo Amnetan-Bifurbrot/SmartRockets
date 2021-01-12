@@ -13,6 +13,7 @@ namespace SmartRockets {
 		System.Windows.Threading.DispatcherTimer dispatcherTimer;
 		double width = 450, height = 430, obstacleX, obstacleY;
 		int pop_size = 25; // ilosc rakiet
+		Vector[] velWhenCrashed;	//tablica do przechowywania informacji o prędkości rakiety po zderzeniu z przeszkodą; kwestia estetyczna
 		Rocket[] rockets; // docelowo bedzie duze N, wiec tablica bedzie szybsza niz lista  
 		Point target = new Point(450 / 2 - 10, 90);
 		int generation = 1;
@@ -27,7 +28,7 @@ namespace SmartRockets {
 
 			dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
 			dispatcherTimer.Tick += dispatcherTimer_Tick;
-			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(20);
+			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10);
 
 			obstacleX = width / 2 - 100;
 			obstacleY = height / 2 - 55;
@@ -37,6 +38,7 @@ namespace SmartRockets {
 			SetObstacle(x_coord, y_coord, obstacleWidth, obstacleHeight);
 
 			rockets = new Rocket[pop_size];
+			velWhenCrashed = new Vector[pop_size];
 		}
 
 		private void StartBtn_Click(object sender, RoutedEventArgs e) {
@@ -85,15 +87,17 @@ namespace SmartRockets {
 
 				if (!showLastRocket) {
 					for (int j = 0; j < pop_size; j++) {
-						// jezeli walnie w przeszkode to nie dodajemy do pozycji
+						// jezeli walnie w przeszkode to nie dodajemy do predkosci
 						// sprawdzenie czy walniemy w pzrszkode
-						if (rockets[j].pos.X > x_coord && rockets[j].pos.X < (x_coord + obstacleWidth) && rockets[j].pos.Y > y_coord && rockets[j].pos.Y < (y_coord + obstacleHeight)) {
+						if (rockets[j].pos.X > x_coord && rockets[j].pos.X < (x_coord + obstacleWidth) && rockets[j].pos.Y > y_coord && rockets[j].pos.Y < (y_coord + obstacleHeight) && !rockets[j].crashed) {
 							//MessageBox.Show("Crashed!");
 							rockets[j].crashed = true;
+							velWhenCrashed[j] = rockets[j].vel; //zapisujemy wektor prędkości, z którą rakieta walnęła w kupę, żeby potem narysować, że faktycznie walnęła :)
 						}
 						if (rockets[j].crashed != true) {
-							rockets[j].pos.X += rockets[j].genes[counter].X; // dodajemy do aktualnej pozycji to co jest w tablicy z genami w danym kroku czasowym
-							rockets[j].pos.Y += rockets[j].genes[counter].Y;
+							rockets[j].vel += rockets[j].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
+							rockets[j].pos.X += rockets[j].vel.X;	// dodajemy do aktualnej pozycji aktualną wartość prędkości
+							rockets[j].pos.Y += rockets[j].vel.Y;
 						} else {
 							rockets[j].Fitness(target, 5, 5); // troche nie ciaua szyyypko jakbym chciaua
 						}
@@ -108,9 +112,13 @@ namespace SmartRockets {
 						};
 
 						// obrot rakiety o odpowiedni kat
-						double angle = Math.Atan2(rockets[j].genes[counter].Y, rockets[j].genes[counter].X);
-						rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI));
-
+						if (!rockets[j].crashed) {
+							double angle = Math.Atan2(rockets[j].vel.Y, rockets[j].vel.X);
+							rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI + 90));
+						} else {
+							double angle = Math.Atan2(velWhenCrashed[j].Y,velWhenCrashed[j].X);
+							rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI + 90));
+						}
 						canvas.Children.Add(rect);
 
 						Canvas.SetLeft(rect, rockets[j].pos.X);
@@ -120,8 +128,9 @@ namespace SmartRockets {
 
 				} else {
 					// jezeli rysujemy najlepsza rakiete
-					rockets[bestRocketIndex].pos.X += rockets[bestRocketIndex].genes[counter].X; // dodajemy do aktualnej pozycji to co jest w tablicy z genami w danym kroku czasowym
-					rockets[bestRocketIndex].pos.Y += rockets[bestRocketIndex].genes[counter].Y;
+					rockets[bestRocketIndex].vel += rockets[bestRocketIndex].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
+					rockets[bestRocketIndex].pos.X += rockets[bestRocketIndex].vel.X; 
+					rockets[bestRocketIndex].pos.Y += rockets[bestRocketIndex].vel.Y;
 
 					Rectangle rect = new Rectangle();
 					rect.Width = 8;
@@ -133,7 +142,7 @@ namespace SmartRockets {
 
 					// obrot rakiety o odpowiedni kat
 					double angle = Math.Atan2(rockets[bestRocketIndex].genes[counter].Y, rockets[bestRocketIndex].genes[counter].X);
-					rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI));
+					rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI + 90));
 
 					canvas.Children.Add(rect);
 
