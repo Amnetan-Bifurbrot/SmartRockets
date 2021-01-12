@@ -19,7 +19,7 @@ namespace SmartRockets {
 		int generation = 1;
 		Random r = new Random();
 		Image target_img = new Image();
-		double precisionToStop = 10, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
+		double precisionToStop = 15, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
 		bool showLastRocket = false;
 		int bestRocketIndex = 0;
 
@@ -141,7 +141,7 @@ namespace SmartRockets {
 					};
 
 					// obrot rakiety o odpowiedni kat
-					double angle = Math.Atan2(rockets[bestRocketIndex].genes[counter].Y, rockets[bestRocketIndex].genes[counter].X);
+					double angle = Math.Atan2(rockets[bestRocketIndex].vel.Y, rockets[bestRocketIndex].vel.X);
 					rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI + 90));
 
 					canvas.Children.Add(rect);
@@ -160,14 +160,14 @@ namespace SmartRockets {
 				double dist = 400;
 
 				for (int i = 0; i < pop_size; i++) {
-					double dx = rockets[i].pos.X - target.X, dy = rockets[i].pos.Y - target.Y;
+					double dx = rockets[i].pos.X - target.X - target_img.Height / 2, dy = rockets[i].pos.Y - target.Y - target_img.Width;
 					double new_dist = Math.Sqrt(dx * dx + dy * dy);
 					if (dist > new_dist) {
 						dist = new_dist;
 						bestRocketIndex = i;
 					}
 				}
-				distanceLabel.Content = "Distance: " + string.Format("{0:N5}", dist);
+				distanceLabel.Content = "Best distance: " + string.Format("{0:N5}", dist);
 
 				// stopujemy symulacje jezeli rakieta z pewna precyzja dobiegla do celu
 				if (dist < precisionToStop) {
@@ -186,7 +186,7 @@ namespace SmartRockets {
 				counter = 0; // konczymy zabawe
 				double maxFit = 0;
 				for (int i = 0; i < pop_size; i++) { // szukanie maxFita sposrod wszystkich rakiet
-					rockets[i].Fitness(target, 5, 5);
+					rockets[i].Fitness(target, target_img.Height, target_img.Width);
 					if (maxFit < rockets[i].fitness)
 						maxFit = rockets[i].fitness;
 					Console.WriteLine("Rakieta " + i + ": " + rockets[i].fitness);
@@ -222,10 +222,10 @@ namespace SmartRockets {
 
 		private void SetTarget() {
 			target_img.Source = new BitmapImage(new Uri("/Resources/target.png", UriKind.Relative));
-			//Width = 5;
-			//Height = 5;
-			Canvas.SetLeft(target_img, target.X - 2.5);
-			Canvas.SetTop(target_img, target.Y - 2.5);
+			target_img.Width = 30;
+			target_img.Height = 30;
+			Canvas.SetLeft(target_img, target.X - 15);
+			Canvas.SetTop(target_img, target.Y - 15);
 			canvas.Children.Add(target_img);
 
 		}
