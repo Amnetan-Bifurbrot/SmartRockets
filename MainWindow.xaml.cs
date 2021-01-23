@@ -13,7 +13,9 @@ namespace SmartRockets {
 		System.Windows.Threading.DispatcherTimer dispatcherTimer;
 		double width = 450, height = 430, obstacleX, obstacleY;
 		int pop_size = 25; // ilosc rakiet
-		Vector[] velWhenCrashed;	//tablica do przechowywania informacji o prędkości rakiety po zderzeniu z przeszkodą; kwestia estetyczna
+		Vector[] velWhenCrashed;    //tablica do przechowywania informacji o prędkości rakiety po zderzeniu z przeszkodą; kwestia estetyczna
+		Vector[] velWhenOutOfFuel;  //tablica do przechowywania informacji o prędkości rakiety po skończeniu się paliwa; kwestia estetyczna
+		Vector velDifference;		//wielkość do przechowywania informacji o różnicy wektora prędkości
 		Rocket[] rockets; // docelowo bedzie duze N, wiec tablica bedzie szybsza niz lista  
 		Point target = new Point(450 / 2 - 10, 90);
 		int generation = 1;
@@ -39,6 +41,7 @@ namespace SmartRockets {
 
 			rockets = new Rocket[pop_size];
 			velWhenCrashed = new Vector[pop_size];
+			velWhenOutOfFuel = new Vector[pop_size];
 		}
 
 		private void StartBtn_Click(object sender, RoutedEventArgs e) {
@@ -88,16 +91,32 @@ namespace SmartRockets {
 				if (!showLastRocket) {
 					for (int j = 0; j < pop_size; j++) {
 						// jezeli walnie w przeszkode to nie dodajemy do predkosci
-						// sprawdzenie czy walniemy w pzrszkode
+						// sprawdzenie czy walniemy w przeszkode
 						if (rockets[j].pos.X > x_coord && rockets[j].pos.X < (x_coord + obstacleWidth) && rockets[j].pos.Y > y_coord && rockets[j].pos.Y < (y_coord + obstacleHeight) && !rockets[j].crashed) {
 							//MessageBox.Show("Crashed!");
 							rockets[j].crashed = true;
 							velWhenCrashed[j] = rockets[j].vel; //zapisujemy wektor prędkości, z którą rakieta walnęła w kupę, żeby potem narysować, że faktycznie walnęła :)
 						}
+
+						
+
 						if (rockets[j].crashed != true) {
-							rockets[j].vel += rockets[j].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
-							rockets[j].pos.X += rockets[j].vel.X;	// dodajemy do aktualnej pozycji aktualną wartość prędkości
-							rockets[j].pos.Y += rockets[j].vel.Y;
+							//skonczylo sie paliwo?
+							if (rockets[j].outOfFuel) {
+								rockets[j].pos += velWhenOutOfFuel[j];  //leci dalej z prędkością, przy której skończyło się paliwo
+							} else {
+								if (counter == 0)	//pierwsze zużycie paliwa
+									velDifference = rockets[j].genes[counter];
+								else
+									velDifference = rockets[j].genes[counter] - rockets[j].genes[counter - 1];
+								rockets[j].vel += rockets[j].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
+								rockets[j].pos += rockets[j].vel;   // dodajemy do aktualnej pozycji aktualną wartość prędkości
+								rockets[j].fuel -= velDifference.Length;
+								if (rockets[j].fuel < 0) {
+									rockets[j].outOfFuel = true;
+									velWhenOutOfFuel[j] = rockets[j].vel;
+								}
+							}
 						} else {
 							rockets[j].Fitness(target, 5, 5); // troche nie ciaua szyyypko jakbym chciaua
 						}
@@ -129,8 +148,7 @@ namespace SmartRockets {
 				} else {
 					// jezeli rysujemy najlepsza rakiete
 					rockets[bestRocketIndex].vel += rockets[bestRocketIndex].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
-					rockets[bestRocketIndex].pos.X += rockets[bestRocketIndex].vel.X; 
-					rockets[bestRocketIndex].pos.Y += rockets[bestRocketIndex].vel.Y;
+					rockets[bestRocketIndex].pos += rockets[bestRocketIndex].vel;
 
 					Rectangle rect = new Rectangle();
 					rect.Width = 8;

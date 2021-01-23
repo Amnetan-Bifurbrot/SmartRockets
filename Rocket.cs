@@ -11,9 +11,11 @@ namespace SmartRockets {
 		public double fitness = -1;
 		public Point pos;
 		public Vector vel;
+		public double fuel = 100;
 		public Vector[] genes;
 		string workingDirectory = Environment.CurrentDirectory;
 		public bool crashed = false;
+		public bool outOfFuel = false;
 
 		public Rocket() {
 			string workingDirectory = Environment.CurrentDirectory;
