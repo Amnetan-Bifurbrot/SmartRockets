@@ -21,7 +21,7 @@ namespace SmartRockets {
 		int generation = 1;
 		Random r = new Random();
 		Image target_img = new Image();
-		double precisionToStop = 10, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
+		double precisionToStop = 20, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
 		bool showLastRocket = false;
 		int bestRocketIndex = 0;
 

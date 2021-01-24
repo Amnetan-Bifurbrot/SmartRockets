@@ -11,7 +11,7 @@ namespace SmartRockets {
 		public double fitness = -1;
 		public Point pos;
 		public Vector vel;
-		public double fuel = 150;
+		public double fuel = 120;
 		public Vector[] genes;
 		string workingDirectory = Environment.CurrentDirectory;
 		public bool crashed = false;
