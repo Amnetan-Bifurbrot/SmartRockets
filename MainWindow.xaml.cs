@@ -25,6 +25,7 @@ namespace SmartRockets {
 		bool showLastRocket = false;
 		int bestRocketIndex = 0;
 
+
 		public MainWindow() {
 			InitializeComponent();
 
