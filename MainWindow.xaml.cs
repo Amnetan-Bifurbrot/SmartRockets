@@ -15,13 +15,13 @@ namespace SmartRockets {
 		int pop_size = 25; // ilosc rakiet
 		Vector[] velWhenCrashed;    //tablica do przechowywania informacji o prędkości rakiety po zderzeniu z przeszkodą; kwestia estetyczna
 		Vector[] velWhenOutOfFuel;  //tablica do przechowywania informacji o prędkości rakiety po skończeniu się paliwa; kwestia estetyczna
-		Vector velDifference;		//wielkość do przechowywania informacji o różnicy wektora prędkości
+		Vector velDifference;       //wielkość do przechowywania informacji o różnicy wektora prędkości
 		Rocket[] rockets; // docelowo bedzie duze N, wiec tablica bedzie szybsza niz lista  
 		Point target = new Point(450 / 2 - 10, 90);
 		int generation = 1;
 		Random r = new Random();
 		Image target_img = new Image();
-		double precisionToStop = 15, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
+		double precisionToStop = 10, x_coord = 50, y_coord = 250, obstacleWidth = 200, obstacleHeight = 10; // x_coor i y_coord to lewy gorny rog przeszkody
 		bool showLastRocket = false;
 		int bestRocketIndex = 0;
 
@@ -77,6 +77,7 @@ namespace SmartRockets {
 					SetObstacle(x_coord, y_coord, obstacleWidth, obstacleHeight);
 
 					rockets[bestRocketIndex].pos = new Point(canvas.Width / 2 - 10, canvas.Height - 90);
+
 					canvas.Children.Add(rockets[bestRocketIndex]);
 					Canvas.SetLeft(rockets[bestRocketIndex], rockets[bestRocketIndex].pos.X);
 					Canvas.SetTop(rockets[bestRocketIndex], rockets[bestRocketIndex].pos.Y);
@@ -98,27 +99,26 @@ namespace SmartRockets {
 							velWhenCrashed[j] = rockets[j].vel; //zapisujemy wektor prędkości, z którą rakieta walnęła w kupę, żeby potem narysować, że faktycznie walnęła :)
 						}
 
-						
-
 						if (rockets[j].crashed != true) {
 							//skonczylo sie paliwo?
 							if (rockets[j].outOfFuel) {
 								rockets[j].pos += velWhenOutOfFuel[j];  //leci dalej z prędkością, przy której skończyło się paliwo
 							} else {
-								if (counter == 0)	//pierwsze zużycie paliwa
+								if (counter == 0)   //bo pierwsza zmiana wektora prędkości to pierwszy wektor prędkości
 									velDifference = rockets[j].genes[counter];
 								else
 									velDifference = rockets[j].genes[counter] - rockets[j].genes[counter - 1];
 								rockets[j].vel += rockets[j].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
 								rockets[j].pos += rockets[j].vel;   // dodajemy do aktualnej pozycji aktualną wartość prędkości
 								rockets[j].fuel -= velDifference.Length;
+								//jeśli skończy się paliwo, to oznaczamy rakietę, że skończyło jej się paliwo i będzie sobie dalej lecieć bezwładnie (patrz około 9 linijek wcześniej)
 								if (rockets[j].fuel < 0) {
 									rockets[j].outOfFuel = true;
 									velWhenOutOfFuel[j] = rockets[j].vel;
 								}
 							}
 						} else {
-							rockets[j].Fitness(target, 5, 5); // troche nie ciaua szyyypko jakbym chciaua
+							rockets[j].Fitness(target); // troche nie ciaua szyyypko jakbym chciaua
 						}
 
 
@@ -135,7 +135,7 @@ namespace SmartRockets {
 							double angle = Math.Atan2(rockets[j].vel.Y, rockets[j].vel.X);
 							rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI + 90));
 						} else {
-							double angle = Math.Atan2(velWhenCrashed[j].Y,velWhenCrashed[j].X);
+							double angle = Math.Atan2(velWhenCrashed[j].Y, velWhenCrashed[j].X);
 							rect.RenderTransform = new RotateTransform((angle * 180 / Math.PI + 90));
 						}
 						canvas.Children.Add(rect);
@@ -147,9 +147,25 @@ namespace SmartRockets {
 
 				} else {
 					// jezeli rysujemy najlepsza rakiete
-					rockets[bestRocketIndex].vel += rockets[bestRocketIndex].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
-					rockets[bestRocketIndex].pos += rockets[bestRocketIndex].vel;
+					//skopiowałem to co dopisałem w if(!showLastRocket)
+					//tak ogólnie to gdyby było więcej czasu to należałoby solidnie posprzątać w tym kodzie, bo wszystko jest wszędzie
+					if (rockets[bestRocketIndex].outOfFuel)
+						rockets[bestRocketIndex].pos += velWhenOutOfFuel[bestRocketIndex];
+					else {
+						if (rockets[bestRocketIndex].outOfFuel) {
+							rockets[bestRocketIndex].pos += velWhenOutOfFuel[bestRocketIndex];
+						} else {
+							if (counter == 0)
+								velDifference = rockets[bestRocketIndex].genes[counter];
+							else
+								velDifference = rockets[bestRocketIndex].genes[counter] - rockets[bestRocketIndex].genes[counter - 1];
 
+							rockets[bestRocketIndex].vel += rockets[bestRocketIndex].genes[counter];        // dodajemy do aktualnej predkosci to co jest w tablicy z genami w danym kroku czasowym
+							rockets[bestRocketIndex].pos += rockets[bestRocketIndex].vel;
+							if (rockets[bestRocketIndex].fuel < 0)
+								rockets[bestRocketIndex].outOfFuel = true;
+						}
+					}
 					Rectangle rect = new Rectangle();
 					rect.Width = 8;
 					rect.Height = 20;
@@ -169,11 +185,10 @@ namespace SmartRockets {
 				}
 				counter++;
 
-			} else if (counter >= Rocket.lifetime && showLastRocket == true) {
-				// dla przypadku rakiety najlepszej jak już zostala jej cala droga narysowana i chcemy zakonczyc timer bez kontynuowania generacji
-				showLastRocket = false;
-				dispatcherTimer.Stop();
 			} else {
+				if (showLastRocket) {
+					dispatcherTimer.Stop();
+				}
 				// wyliczamy najkrotszy distance do celu sposrod calej generacji
 				double dist = 400;
 
@@ -197,6 +212,7 @@ namespace SmartRockets {
 					if (result == MessageBoxResult.No) {
 						dispatcherTimer.Stop();
 					} else {
+						rockets[bestRocketIndex].outOfFuel = rockets[bestRocketIndex].crashed = false;
 						showLastRocket = true; // rysujemy poejdynczy ruch rakiety tej najlepszej
 					}
 				}
@@ -204,7 +220,7 @@ namespace SmartRockets {
 				counter = 0; // konczymy zabawe
 				double maxFit = 0;
 				for (int i = 0; i < pop_size; i++) { // szukanie maxFita sposrod wszystkich rakiet
-					rockets[i].Fitness(target, target_img.Height, target_img.Width);
+					rockets[i].Fitness(target);
 					if (maxFit < rockets[i].fitness)
 						maxFit = rockets[i].fitness;
 					Console.WriteLine("Rakieta " + i + ": " + rockets[i].fitness);
@@ -242,8 +258,9 @@ namespace SmartRockets {
 			target_img.Source = new BitmapImage(new Uri("/Resources/target.png", UriKind.Relative));
 			target_img.Width = 30;
 			target_img.Height = 30;
-			Canvas.SetLeft(target_img, target.X - 15);
-			Canvas.SetTop(target_img, target.Y - 15);
+			//ustawiam target tak jak poniżej, żeby potem zrekompensować w funkcji Fitness()
+			Canvas.SetLeft(target_img, target.X);
+			Canvas.SetTop(target_img, target.Y);
 			canvas.Children.Add(target_img);
 
 		}

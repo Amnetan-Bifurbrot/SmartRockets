@@ -11,7 +11,7 @@ namespace SmartRockets {
 		public double fitness = -1;
 		public Point pos;
 		public Vector vel;
-		public double fuel = 100;
+		public double fuel = 150;
 		public Vector[] genes;
 		string workingDirectory = Environment.CurrentDirectory;
 		public bool crashed = false;
@@ -37,7 +37,7 @@ namespace SmartRockets {
 			genes = new Vector[lifetime];
 			for (int i = 0; i < lifetime; i++) {
 				int step = 4;
-				angle = r.Next(0 / step, 360 / step) * step * Math.PI / 5; //losujemy geny do chromosomu (kąty od 0 do 2pi) - z dokladnoscia do stepu
+				angle = r.Next(step) * 2 * Math.PI / step; //losujemy geny do chromosomu (kąty od 0 do 2pi) - z dokladnoscia do stepu
 				genes[i] = new Vector(1 * Math.Sin(angle), 1 * Math.Cos(angle)); // odlegosc w pixelach jaka pokona w jedym kroku czasowym rakieta dla bezwzglednych
 			}
 		}
@@ -91,10 +91,10 @@ namespace SmartRockets {
 			return child;
 		}
 
-		public void Fitness(Point target, double targetWidth, double targetHeight) {
+		public void Fitness(Point target) {
 			//zwracamy 1/odległość do targetu
 
-			double dx = pos.X - (target.X + targetWidth / 2), dy = pos.Y - (target.Y + targetHeight / 2);
+			double dx = pos.X - (target.X + 15), dy = pos.Y - (target.Y + 15);
 			
 			fitness = 1.0 / Math.Sqrt(dx * dx + dy * dy);
 
